@@ -4,12 +4,32 @@
 
 import { z } from "zod";
 
+const sourceFileEntry = z.object({
+  fileName: z
+    .string()
+    .describe('Name of the source file (e.g., "ordersService.js")'),
+  code: z
+    .string()
+    .describe(
+      "The complete, unmodified source code content of the file. " +
+        "Do NOT strip comments, blank lines, or reformat the code.",
+    ),
+});
+
 export const migrationAssistantSchema = z.object({
   source_code: z
     .string()
     .optional()
     .describe(
-      "Your existing API integration code (optional - if not provided, returns general migration guidance)",
+      "A single code snippet to analyze. Only use this when the user pastes code directly. " +
+        "When analyzing files from a project, always use source_files instead.",
+    ),
+  source_files: z
+    .array(sourceFileEntry)
+    .optional()
+    .describe(
+      "Array of source files to analyze. Each entry has fileName and code. " +
+        "Always use this instead of source_code when you have access to the user's files.",
     ),
   source_version: z
     .string()

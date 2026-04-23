@@ -1,61 +1,72 @@
 {
   "name": "sp-api-dev-assistant-mcp-server",
-  "version": "0.0.1",
-  "description": "MCP server for Amazon SP-API developer assistant tools (Orders API, Migration Assistant, Credentials)",
+  "version": "0.1.0",
+  "description": "MCP server for Amazon SP-API developer assistant tools (Migration Assistant, Code Generation, Search, Optimization)",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
-  "main": "build/index.js",
+  "main": "dist/index.js",
   "bin": {
-    "sp-api-dev-assistant-mcp-server": "./build/index.js"
+    "sp-api-dev-assistant-mcp-server": "./dist/index.js"
   },
   "scripts": {
-    "start": "node build/index.js",
+    "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "build": "tsc",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "clean": "rm -rf dist && rm -rf node_modules",
+    "build": "tsc && cp -r src/resources dist/",
+    "lint": "eslint --fix --cache src",
+    "lint:fix": "eslint --fix --cache src",
+    "format": "prettier --write --cache .",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "test": "jest",
-    "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepare": "npm run lint:fix && npm run format && npm run type-check",
+    "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "build:index": "tsx scripts/search-tools/build-index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.2",
-    "axios": "^1.7.7",
+    "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
+    "simple-git": "3.20.0",
+    "undici": "7.22.0",
+    "vectra": "^0.9.0",
+    "yaml": "^2.8.2",
     "zod": "^3.22.4"
   },
+  "optionalDependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "sharp": "^0.33.5"
+  },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^7.25.4",
-    "@babel/preset-typescript": "^7.24.7",
-    "@types/jest": "^29.5.12",
     "@types/node": "^22.5.4",
     "@typescript-eslint/eslint-plugin": "^8.3.0",
     "@typescript-eslint/parser": "^8.3.0",
-    "babel-jest": "^29.7.0",
     "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
-    "jest": "^29.7.0",
     "prettier": "^3.3.3",
-    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.1",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.0"
   },
   "files": [
     "src/",
-    "build/",
+    "dist/",
     "README.md"
   ],
   "keywords": [
     "mcp",
     "amazon",
     "sp-api",
-    "orders",
     "migration-assistant",
+    "code-generation",
+    "optimization",
     "model-context-protocol"
   ]
 }

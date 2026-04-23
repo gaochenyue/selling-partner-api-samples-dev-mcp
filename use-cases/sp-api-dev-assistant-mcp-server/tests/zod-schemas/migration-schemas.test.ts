@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { migrationAssistantSchema } from "../../src/zod-schemas/migration-schemas";
 import { z } from "zod";
 
@@ -248,9 +249,7 @@ describe("Migration Schemas", () => {
 
     describe("type inference", () => {
       it("should infer correct TypeScript type", () => {
-        type MigrationAssistantInput = z.infer<
-          typeof migrationAssistantSchema
-        >;
+        type MigrationAssistantInput = z.infer<typeof migrationAssistantSchema>;
 
         const validData: MigrationAssistantInput = {
           source_version: "orders-v0",
@@ -262,9 +261,7 @@ describe("Migration Schemas", () => {
       });
 
       it("should allow optional fields in inferred type", () => {
-        type MigrationAssistantInput = z.infer<
-          typeof migrationAssistantSchema
-        >;
+        type MigrationAssistantInput = z.infer<typeof migrationAssistantSchema>;
 
         const validData: MigrationAssistantInput = {
           source_code: "code here",

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SPAPIMigrationAssistantTool } from "../../src/tools/migration-assistant-tools/migration-tools";
 
 describe("SPAPIMigrationAssistantTool", () => {
@@ -102,7 +103,9 @@ describe("SPAPIMigrationAssistantTool", () => {
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0].text).toContain("BuyerEmail");
-      expect(result.content[0].text).toContain("Order.fulfillment.fulfillmentStatus");
+      expect(result.content[0].text).toContain(
+        "Order.fulfillment.fulfillmentStatus",
+      );
     });
   });
 });
