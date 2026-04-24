@@ -131,6 +131,10 @@ jobs:
             --bundle \
             --platform=node \
             --format=esm \
+            --external:@huggingface/transformers \
+            --external:sharp \
+            --external:vectra \
+            --external:onnxruntime-node \
             --outfile=../../sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-mcp-server.mjs
 
       - name: Copy dev-assistant data (OpenAPI models, pre-built index and resources)
@@ -184,6 +188,12 @@ jobs:
           pkg.bin['sp-api-dev-assistant-mcp-server'] = './bundled-servers/sp-api-dev-assistant-mcp-server-wrapper.mjs';
 
           if (!pkg.files.includes('bundled-servers/')) pkg.files.push('bundled-servers/');
+
+          // Native deps for sp-api-dev-assistant (excluded from esbuild bundle)
+          if (!pkg.dependencies) pkg.dependencies = {};
+          pkg.dependencies['@huggingface/transformers'] = '^3.0.0';
+          pkg.dependencies['sharp'] = '^0.33.5';
+          pkg.dependencies['vectra'] = '^0.9.0';
 
           writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           EOF

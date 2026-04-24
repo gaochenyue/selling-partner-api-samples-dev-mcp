@@ -3,6 +3,8 @@
  * Uses the multilingual-e5-small model (384 dimensions) for embedding text.
  */
 
+import { pipeline as createPipeline } from '@huggingface/transformers';
+
 export interface EmbeddingService {
   /** Generate a 384-dimension embedding vector for the given text (query prefix). */
   embed(text: string): Promise<number[]>;
@@ -73,13 +75,7 @@ export class TransformersEmbeddingService implements EmbeddingService {
       return;
     }
     this.loadPromise = (async () => {
-      // @huggingface/transformers is listed as an optionalDependency in package.json.
-      // It is required at runtime for embedding, but marked optional because its transitive
-      // dependency (onnxruntime-node) downloads platform-specific native binaries during
-      // npm install, which fails in sandboxed CI environments without internet access.
-      // End users installing via npm/npx will get it automatically.
-      const { pipeline } = await import("@huggingface/transformers");
-      this.pipeline = await pipeline("feature-extraction", this.modelId);
+      this.pipeline = await createPipeline("feature-extraction", this.modelId);
     })();
     await this.loadPromise;
   }

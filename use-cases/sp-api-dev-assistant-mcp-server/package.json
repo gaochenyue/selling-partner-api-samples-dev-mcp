@@ -37,9 +37,7 @@
     "undici": "7.22.0",
     "vectra": "^0.9.0",
     "yaml": "^2.8.2",
-    "zod": "^3.22.4"
-  },
-  "optionalDependencies": {
+    "zod": "^3.22.4",
     "@huggingface/transformers": "^3.0.0",
     "sharp": "^0.33.5"
   },
