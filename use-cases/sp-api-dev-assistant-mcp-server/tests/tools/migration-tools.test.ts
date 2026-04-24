@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SPAPIMigrationAssistantTool } from "../../src/tools/migration-assistant-tools/migration-tools";
+import { join } from "path";
+
+const resourcePath = join(process.cwd(), "src", "resources", "orders-api-migration-data.json");
 
 describe("SPAPIMigrationAssistantTool", () => {
   let migrationAssistant: SPAPIMigrationAssistantTool;
 
   beforeEach(() => {
-    migrationAssistant = new SPAPIMigrationAssistantTool();
+    migrationAssistant = new SPAPIMigrationAssistantTool(resourcePath);
   });
 
   describe("migrationAssistant", () => {

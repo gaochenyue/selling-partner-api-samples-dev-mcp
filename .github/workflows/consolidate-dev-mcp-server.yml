@@ -23,13 +23,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Used by sp-api-mcp-server for OpenAPI specs
       - name: Clone selling-partner-api-models
         run: git clone --depth 1 https://github.com/amzn/selling-partner-api-models.git ../selling-partner-api-models
+
+      # Used by dev-assistant parser integration tests
+      - name: Clone selling-partner-api-sdk (for integration tests)
+        run: git clone --depth 1 https://github.com/amzn/selling-partner-api-sdk.git use-cases/sp-api-dev-assistant-mcp-server/selling-partner-api-sdk
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: |
+            use-cases/sp-api-dev-assistant-mcp-server/package-lock.json
+            use-cases/sp-api-mcp-server/package-lock.json
+            use-cases/amazon-data-kiosk-mcp-server/package-lock.json
+            sp-api-dev-mcp/package-lock.json
 
       # ── Build amazon-data-kiosk-mcp-server ──────────────────────────
       - name: Install data-kiosk dependencies
@@ -57,6 +68,27 @@ jobs:
       - name: Build sp-api-dev-assistant-mcp-server
         working-directory: use-cases/sp-api-dev-assistant-mcp-server
         run: npm run build
+
+      - name: Run sp-api-dev-assistant-mcp-server tests
+        working-directory: use-cases/sp-api-dev-assistant-mcp-server
+        run: npm test
+
+      - name: Get date for crawl cache key
+        id: crawl-date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore crawl cache (daily TTL)
+        uses: actions/cache@v4
+        with:
+          path: use-cases/sp-api-dev-assistant-mcp-server/build/crawl-cache
+          key: sp-api-docs-crawl-${{ steps.crawl-date.outputs.date }}
+          restore-keys: |
+            sp-api-docs-crawl-
+
+      - name: Build pre-built search/Vectra index for sp-api-dev-assistant
+        working-directory: use-cases/sp-api-dev-assistant-mcp-server
+        timeout-minutes: 30
+        run: npm run build:index
 
       # ── Bundle servers into sp-api-dev-mcp ───────────────────────────────────
       - name: Install esbuild
@@ -95,14 +127,18 @@ jobs:
       - name: Bundle sp-api-dev-assistant-mcp-server
         working-directory: use-cases/sp-api-dev-assistant-mcp-server
         run: |
-          esbuild build/index.js \
+          esbuild dist/index.js \
             --bundle \
             --platform=node \
             --format=esm \
             --outfile=../../sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-mcp-server.mjs
 
-      - name: Copy OpenAPI models
-        run: cp -r ../selling-partner-api-models/models sp-api-dev-mcp/bundled-servers/models
+      - name: Copy dev-assistant data (OpenAPI models, pre-built index and resources)
+        run: |
+          mkdir -p sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-data
+          cp -r use-cases/sp-api-dev-assistant-mcp-server/dist/data sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-data/
+          cp -r use-cases/sp-api-dev-assistant-mcp-server/dist/resources sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-data/
+          cp -r ../selling-partner-api-models/models sp-api-dev-mcp/bundled-servers/models
 
       # Wrapper sets CATALOG_PATH to the bundled models before starting sp-api-mcp-server
       - name: Create sp-api-mcp-server wrapper
@@ -113,9 +149,22 @@ jobs:
           import { dirname, join } from 'path';
 
           const __dirname = dirname(fileURLToPath(import.meta.url));
-          process.env.CATALOG_PATH = process.env.CATALOG_PATH || join(__dirname, 'models');
+          process.env.CATALOG_PATH = join(__dirname, 'models');
 
           await import('./sp-api-mcp-server.mjs');
+          EOF
+
+      - name: Create sp-api-dev-assistant-mcp-server wrapper
+        run: |
+          cat > sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-mcp-server-wrapper.mjs << 'EOF'
+          #!/usr/bin/env node
+          import { fileURLToPath } from 'url';
+          import { dirname, join } from 'path';
+
+          const __dirname = dirname(fileURLToPath(import.meta.url));
+          process.env.SP_API_DEV_ASSISTANT_DATA_DIR = join(__dirname, 'sp-api-dev-assistant-data');
+
+          await import('./sp-api-dev-assistant-mcp-server.mjs');
           EOF
 
       - name: Make bundled servers executable
@@ -132,7 +181,7 @@ jobs:
           pkg.bin['amazon-data-kiosk-sc-mcp-server'] = './bundled-servers/amazon-data-kiosk-sc-mcp-server.mjs';
           pkg.bin['amazon-data-kiosk-vc-mcp-server'] = './bundled-servers/amazon-data-kiosk-vc-mcp-server.mjs';
           pkg.bin['sp-api-mcp-server'] = './bundled-servers/sp-api-mcp-server-wrapper.mjs';
-          pkg.bin['sp-api-dev-assistant-mcp-server'] = './bundled-servers/sp-api-dev-assistant-mcp-server.mjs';
+          pkg.bin['sp-api-dev-assistant-mcp-server'] = './bundled-servers/sp-api-dev-assistant-mcp-server-wrapper.mjs';
 
           if (!pkg.files.includes('bundled-servers/')) pkg.files.push('bundled-servers/');
 

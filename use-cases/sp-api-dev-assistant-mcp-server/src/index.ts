@@ -21,6 +21,10 @@ config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// When running from the consolidated bundle, the wrapper sets this env var
+// to point to the data directory (pre-built index, resources, etc.)
+const dataRoot = process.env.SP_API_DEV_ASSISTANT_DATA_DIR || __dirname;
+
 class SPAPIDevMCPServer {
   private server: McpServer;
   private migrationAssistantTool: SPAPIMigrationAssistantTool;
@@ -34,10 +38,12 @@ class SPAPIDevMCPServer {
       version: "1.2.0",
     });
 
-    this.migrationAssistantTool = new SPAPIMigrationAssistantTool();
+    this.migrationAssistantTool = new SPAPIMigrationAssistantTool(
+      join(dataRoot, "resources", "orders-api-migration-data.json"),
+    );
     this.CodeGenerationTool = new CodeGenerationTool();
     this.optimizationTool = new OptimizationTool();
-    this.search = createSearchTool(__dirname);
+    this.search = createSearchTool(dataRoot);
 
     this.setupResources();
     this.setupTools();
@@ -55,7 +61,7 @@ class SPAPIDevMCPServer {
       },
       async () => {
         const resourcePath = join(
-          __dirname,
+          dataRoot,
           "resources",
           "orders-api-migration-data.json",
         );

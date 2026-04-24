@@ -1,9 +1,4 @@
 import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export interface ApiMapping {
   v1: string;
@@ -46,15 +41,7 @@ export interface MigrationData {
   migrationBenefits: string[];
 }
 
-export function getOrdersApiMigrationData(): MigrationData {
-  const resourcePath = join(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "resources",
-    "orders-api-migration-data.json",
-  );
+export function getOrdersApiMigrationData(resourcePath: string): MigrationData {
   const jsonData = JSON.parse(readFileSync(resourcePath, "utf-8"));
 
   return {

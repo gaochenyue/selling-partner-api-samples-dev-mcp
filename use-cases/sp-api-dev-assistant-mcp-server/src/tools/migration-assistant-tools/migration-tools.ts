@@ -32,6 +32,12 @@ export interface ToolResponse {
 }
 
 export class SPAPIMigrationAssistantTool {
+  private resourcePath: string;
+
+  constructor(resourcePath: string) {
+    this.resourcePath = resourcePath;
+  }
+
   async migrationAssistant(
     args: MigrationAssistantArgs,
   ): Promise<ToolResponse> {
@@ -104,7 +110,7 @@ export class SPAPIMigrationAssistantTool {
     targetVersion: string,
     analysisOnly: boolean,
   ): Promise<ToolResponse> {
-    const migrationData = getOrdersApiMigrationData();
+    const migrationData = getOrdersApiMigrationData(this.resourcePath);
 
     // Prefer source_files over source_code
     const hasSourceFiles = sourceFiles && sourceFiles.length > 0;
