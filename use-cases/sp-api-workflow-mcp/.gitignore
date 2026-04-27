@@ -1,0 +1,28 @@
+# Ignore the `build/` directory in the package root.
+/build
+
+# Dependencies
+node_modules
+
+# MCP configuration (contains secrets)
+.mcp.json
+
+# Web server credentials
+web/.env.json
+
+# MCP persistence data
+.data
+
+# Claude Code project settings
+.claude
+
+# Runtime data files
+*.txt
+execution-*.md
+web/data/
+
+# Workflow files (generated at runtime)
+workflows/
+
+# Web build output
+web/dist/
