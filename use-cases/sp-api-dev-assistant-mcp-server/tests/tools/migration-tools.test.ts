@@ -1,10 +1,14 @@
+import { describe, it, expect, beforeEach } from 'vitest';
 import { SPAPIMigrationAssistantTool } from "../../src/tools/migration-assistant-tools/migration-tools";
+import { join } from "path";
+
+const resourcePath = join(process.cwd(), "src", "resources", "orders-api-migration-data.json");
 
 describe("SPAPIMigrationAssistantTool", () => {
   let migrationAssistant: SPAPIMigrationAssistantTool;
 
   beforeEach(() => {
-    migrationAssistant = new SPAPIMigrationAssistantTool();
+    migrationAssistant = new SPAPIMigrationAssistantTool(resourcePath);
   });
 
   describe("migrationAssistant", () => {
@@ -102,7 +106,9 @@ describe("SPAPIMigrationAssistantTool", () => {
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0].text).toContain("BuyerEmail");
-      expect(result.content[0].text).toContain("Order.fulfillment.fulfillmentStatus");
+      expect(result.content[0].text).toContain(
+        "Order.fulfillment.fulfillmentStatus",
+      );
     });
   });
 });

@@ -1,6 +1,3 @@
-import { createWriteStream, existsSync, mkdirSync, WriteStream } from "fs";
-import { join } from "path";
-
 export interface LogEntry {
   timestamp: string;
   level: "INFO" | "ERROR" | "WARN" | "DEBUG";
@@ -9,27 +6,7 @@ export interface LogEntry {
   pid: number;
 }
 
-//This class is for local debugging and will NOT be released.
 export class Logger {
-  private logStream: WriteStream;
-  private logPath: string;
-
-  constructor(logFile: string = "dev-mcp.log") {
-    const logsDir = join(process.cwd(), "logs");
-
-    if (!existsSync(logsDir)) {
-      mkdirSync(logsDir, { recursive: true });
-    }
-
-    this.logPath = join(logsDir, logFile);
-    this.logStream = createWriteStream(this.logPath, { flags: "a" });
-
-    this.log("INFO", "Logger initialized", {
-      logPath: this.logPath,
-      cwd: process.cwd(),
-    });
-  }
-
   private log(
     level: LogEntry["level"],
     message: string,
@@ -45,7 +22,7 @@ export class Logger {
     };
 
     const logLine = JSON.stringify(logEntry);
-    this.logStream.write(logLine + "\n");
+    process.stderr.write(logLine + "\n");
   }
 
   info(message: string, data?: any): void {
