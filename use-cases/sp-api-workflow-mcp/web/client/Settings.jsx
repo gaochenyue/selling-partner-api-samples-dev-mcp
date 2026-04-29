@@ -19,6 +19,11 @@ const BEDROCK_FIELDS = [
   { key: 'AWS_PROFILE', label: 'AWS Profile', type: 'text' },
 ];
 
+const AUTH_FIELDS = [
+  { key: 'WEB_USERNAME', label: 'Username', type: 'text', hint: 'Leave both blank to disable auth' },
+  { key: 'WEB_PASSWORD', label: 'Password', type: 'password' },
+];
+
 const MODEL_FIELDS = [
   { key: 'ANTHROPIC_DEFAULT_SONNET_MODEL', label: 'Sonnet Model', type: 'text', hint: 'Optional override' },
   { key: 'ANTHROPIC_DEFAULT_HAIKU_MODEL', label: 'Haiku Model', type: 'text', hint: 'Optional override' },
@@ -194,6 +199,11 @@ export default function Settings() {
       {success && <div className="success-message">{success}</div>}
 
       <div className="settings-sections">
+        <section className="settings-section">
+          <h2>Web Authentication</h2>
+          {AUTH_FIELDS.map(renderField)}
+        </section>
+
         <section className="settings-section">
           <h2>SP-API Configuration</h2>
           {SP_API_FIELDS.map(renderField)}

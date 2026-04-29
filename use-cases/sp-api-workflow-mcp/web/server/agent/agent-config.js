@@ -50,6 +50,8 @@ Wait for the user's response before submitting the callback.`;
 
 const ALLOWED_TOOLS = ['Read', 'Glob', 'Grep', 'Write'];
 
+const WEB_DISABLED_TOOLS = ['create_workflow', 'list_workflows'];
+
 /**
  * Load agent configuration from .env.json and environment.
  * Returns { bedrockEnvVars, mcpServers, systemPrompt, allowedTools }
@@ -83,6 +85,11 @@ export function loadAgentConfig() {
         arg.startsWith('/') ? arg : resolve(WEB_ROOT, arg)
       ),
     };
+  }
+
+  // Inject DISABLED_TOOLS into MCP server env so Claude can't call them from the web UI
+  for (const server of Object.values(mcpServers)) {
+    server.env = { ...(server.env || {}), DISABLED_TOOLS: WEB_DISABLED_TOOLS.join(',') };
   }
 
   if (Object.keys(mcpServers).length > 0) {

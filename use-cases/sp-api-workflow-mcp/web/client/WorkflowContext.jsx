@@ -107,7 +107,7 @@ export default function WorkflowContext() {
             <span className="badge">{Object.keys(schema.States || {}).length} states</span>
           )}
           <button className="btn btn-primary btn-small" onClick={handleExecute}>
-            Execute &nearr;
+            Execute {'↗'}
           </button>
         </div>
       </div>

@@ -8,6 +8,7 @@
     "dev:server": "node server/app.js",
     "dev:client": "npx vite --port 5173",
     "build": "npx vite build",
+    "setup": "node setup.js",
     "start": "node server/app.js"
   },
   "dependencies": {

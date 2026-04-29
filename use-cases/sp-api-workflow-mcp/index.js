@@ -66,7 +66,35 @@ class WorkflowMCPServer {
       }
     });
 
+    this.disabledTools = new Set(
+      (process.env.DISABLED_TOOLS || '').split(',').map(s => s.trim()).filter(Boolean)
+    );
+
     this.setupHandlers();
+    this._buildWorkflowIdTools();
+
+    if (this.disabledTools.size > 0) {
+      console.error(`[workflow-mcp] Disabled tools: ${[...this.disabledTools].join(', ')}`);
+    }
+    if (process.env.WORKFLOW_ID) {
+      console.error(`[workflow-mcp] WORKFLOW_ID override: ${process.env.WORKFLOW_ID}`);
+    }
+  }
+
+  /**
+   * Build a cached set of tool names that declare workflow_id in their input schema.
+   */
+  _buildWorkflowIdTools() {
+    const allTools = [
+      ...createBuilderTools(),
+      ...createInterpreterTools(),
+      ...createCallbackTools(),
+    ];
+    this._workflowIdTools = new Set(
+      allTools
+        .filter(t => t.inputSchema?.properties?.workflow_id)
+        .map(t => t.name)
+    );
   }
 
   /**
@@ -107,17 +135,17 @@ class WorkflowMCPServer {
   setupHandlers() {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const builderTools = createBuilderTools();
-      const interpreterTools = createInterpreterTools();
-      const callbackTools = createCallbackTools();
+      let tools = [
+        ...createBuilderTools(),
+        ...createInterpreterTools(),
+        ...createCallbackTools(),
+      ];
 
-      return {
-        tools: [
-          ...builderTools,
-          ...interpreterTools,
-          ...callbackTools
-        ]
-      };
+      if (this.disabledTools.size > 0) {
+        tools = tools.filter(t => !this.disabledTools.has(t.name));
+      }
+
+      return { tools };
     });
 
     // Handle tool calls
@@ -125,6 +153,15 @@ class WorkflowMCPServer {
       const { name, arguments: args } = request.params;
 
       try {
+        if (this.disabledTools.has(name)) {
+          throw new Error(`Tool "${name}" is disabled in this environment`);
+        }
+
+        const envWorkflowId = process.env.WORKFLOW_ID;
+        if (envWorkflowId && this._workflowIdTools.has(name)) {
+          args.workflow_id = envWorkflowId;
+        }
+
         let result;
 
         // Get shared context

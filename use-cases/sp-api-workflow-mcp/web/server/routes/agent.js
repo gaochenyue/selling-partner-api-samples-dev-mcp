@@ -23,9 +23,17 @@ export function createAgentRoutes({ agentService, sessionStore }) {
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
+    // Send SSE heartbeats to prevent CloudFront/ALB idle timeout (30s/60s)
+    const heartbeat = setInterval(() => {
+      if (!res.writableEnded) {
+        res.write(': heartbeat\n\n');
+      }
+    }, 15000);
+
     // Abort the agent subprocess when the client disconnects
     const abortController = new AbortController();
     res.on('close', () => {
+      clearInterval(heartbeat);
       if (!res.writableEnded) {
         abortController.abort();
       }
@@ -42,6 +50,7 @@ export function createAgentRoutes({ agentService, sessionStore }) {
       }
     }
 
+    clearInterval(heartbeat);
     if (!res.writableEnded) {
       res.write(`event: done\ndata: ${JSON.stringify({ type: 'done' })}\n\n`);
       res.end();

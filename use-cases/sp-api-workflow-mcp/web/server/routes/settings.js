@@ -13,6 +13,7 @@ const SECRET_KEYS = new Set([
   'AWS_BEARER_TOKEN_BEDROCK',
   'AWS_SECRET_ACCESS_KEY',
   'AWS_SESSION_TOKEN',
+  'WEB_PASSWORD',
 ]);
 
 function maskValue(value) {

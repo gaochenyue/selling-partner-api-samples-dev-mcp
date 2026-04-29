@@ -125,12 +125,82 @@ const agentService = new AgentService({
   allowedTools: agentConfig.allowedTools,
   envVars: agentConfig.envVars,
   sessionStore,
+  workflowStore,
 });
+
+function getAuthCredentials() {
+  const envPath = join(__dirname, '../.env.json');
+  try {
+    const config = JSON.parse(readFileSync(envPath, 'utf8'));
+    return { username: config.WEB_USERNAME, password: config.WEB_PASSWORD };
+  } catch { return {}; }
+}
+
+function basicAuth(req, res, next) {
+  const { username, password } = getAuthCredentials();
+  if (!username && !password) return next();
+
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Basic ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const decoded = Buffer.from(header.slice(6), 'base64').toString();
+  const [user, pass] = decoded.split(':');
+  if (user === username && pass === password) return next();
+
+  return res.status(401).json({ error: 'Invalid credentials' });
+}
 
 // Create Express app
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Reject malformed URLs (path traversal scans, double-encoded probes)
+app.use((req, res, next) => {
+  try {
+    decodeURIComponent(req.path);
+    next();
+  } catch {
+    res.status(400).end();
+  }
+});
+
+app.get('/api/auth/check', (req, res) => {
+  const { username, password } = getAuthCredentials();
+  if (!username && !password) return res.json({ required: false });
+
+  const header = req.headers.authorization;
+  if (header && header.startsWith('Basic ')) {
+    const decoded = Buffer.from(header.slice(6), 'base64').toString();
+    const [user, pass] = decoded.split(':');
+    if (user === username && pass === password) {
+      return res.json({ required: true, authenticated: true });
+    }
+  }
+  return res.json({ required: true, authenticated: false });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = getAuthCredentials();
+  if (!username && !password) return res.json({ ok: true });
+
+  const { username: inputUser, password: inputPass } = req.body || {};
+  if (inputUser === username && inputPass === password) {
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ error: 'Invalid username or password' });
+});
+
+// Serve static frontend before auth so the login page can load
+const distPath = join(__dirname, '../dist');
+if (existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
+
+// Auth only protects API routes
+app.use('/api', basicAuth);
 
 // API routes
 const context = { workflowStore, executor, callbackHandler, agentService, sessionStore, loadWorkflows, loadSPAPIClient };
@@ -140,10 +210,8 @@ app.use('/api/callbacks', createCallbackRoutes(context));
 app.use('/api/agent', createAgentRoutes(context));
 app.use('/api/settings', createSettingsRoutes(context));
 
-// Serve static frontend in production
-const distPath = join(__dirname, '../dist');
+// SPA fallback for client-side routes
 if (existsSync(distPath)) {
-  app.use(express.static(distPath));
   app.get('*', (req, res) => {
     res.sendFile(join(distPath, 'index.html'));
   });

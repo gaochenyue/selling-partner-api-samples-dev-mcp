@@ -1,22 +1,23 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { convertToMermaid } from '../../../src/builder/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '../../..');  // repo root
-const API_BASE = `http://localhost:${process.env.PORT || 3001}`;
 
 /**
  * AgentService manages a single chat session with the Claude Agent SDK.
  * Yields typed SSE events from an async generator.
  */
 export class AgentService {
-  constructor({ mcpServers, systemPrompt, allowedTools, envVars, sessionStore }) {
+  constructor({ mcpServers, systemPrompt, allowedTools, envVars, sessionStore, workflowStore }) {
     this.mcpServers = mcpServers;
     this.systemPrompt = systemPrompt;
     this.allowedTools = allowedTools;
     this.envVars = envVars || {};
     this.sessionStore = sessionStore;
+    this.workflowStore = workflowStore;
     this.sessionId = null;
     this.chatInProgress = false;
     this.messages = [];        // accumulated messages for current session
@@ -37,10 +38,22 @@ export class AgentService {
 
     this.chatInProgress = true;
 
-    // Track workflow scope
+    // Track workflow scope — reset session if switching to a different workflow
     if (options.workflowId) {
+      const currentWfId = this.activeWorkflowId || this.workflowId;
+      if (currentWfId && currentWfId !== options.workflowId) {
+        this.sessionId = null;
+        this.messages = [];
+        this.activeWorkflowId = null;
+        this.latestMermaid = null;
+        this.latestStateCount = 0;
+        this.latestSchema = null;
+      }
       this.workflowId = options.workflowId;
     }
+
+    // Inject WORKFLOW_ID env var into MCP server config before query()
+    this._injectWorkflowIdEnv();
 
     // Track the user message and build an assistant message
     this.messages.push({ role: 'user', content: message });
@@ -252,6 +265,18 @@ export class AgentService {
     return text.length > 80 ? text.slice(0, 77) + '...' : text;
   }
 
+  _injectWorkflowIdEnv() {
+    const wfId = this.activeWorkflowId || this.workflowId;
+    for (const server of Object.values(this.mcpServers)) {
+      if (!server.env) server.env = {};
+      if (wfId) {
+        server.env.WORKFLOW_ID = wfId;
+      } else {
+        delete server.env.WORKFLOW_ID;
+      }
+    }
+  }
+
   /**
    * Build the system prompt with workflow context from the current session.
    * Includes workflow ID, state summary, and the mermaid diagram so the
@@ -293,24 +318,20 @@ export class AgentService {
    */
   async *_emitWorkflowArtifacts(workflowId) {
     try {
-      const [diagramRes, schemaRes] = await Promise.all([
-        fetch(`${API_BASE}/api/workflows/${workflowId}/diagram`),
-        fetch(`${API_BASE}/api/workflows/${workflowId}`),
-      ]);
-      if (diagramRes.ok) {
-        const d = await diagramRes.json();
-        if (d.mermaid) {
-          this.latestMermaid = d.mermaid;
-          this.latestStateCount = d.stateCount || 0;
-          yield { type: 'mermaid', mermaid: d.mermaid, stateCount: d.stateCount || 0, workflowId };
-        }
+      this.workflowStore.reload(workflowId);
+      const workflow = this.workflowStore.get(workflowId);
+      if (!workflow) return;
+
+      const schema = this.workflowStore.toASL(workflowId);
+      const mermaidResult = convertToMermaid(schema);
+      if (mermaidResult.success && mermaidResult.mermaid) {
+        this.latestMermaid = mermaidResult.mermaid;
+        this.latestStateCount = mermaidResult.state_count || 0;
+        yield { type: 'mermaid', mermaid: mermaidResult.mermaid, stateCount: mermaidResult.state_count || 0, workflowId };
       }
-      if (schemaRes.ok) {
-        const s = await schemaRes.json();
-        if (s.schema && s.schema.States) {
-          this.latestSchema = s.schema;
-          yield { type: 'schema', schema: s.schema, workflowId };
-        }
+      if (schema && schema.States) {
+        this.latestSchema = schema;
+        yield { type: 'schema', schema, workflowId };
       }
     } catch { /* best effort — don't break the chat stream */ }
   }
