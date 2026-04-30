@@ -20,7 +20,7 @@
     "test:watch": "echo \"No tests\"",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "prepare": "npm run lint:fix && npm run format && npm run type-check"
+    "prepare": "echo 'skip prepare for consolidation package'"
   },
   "dependencies": {},
   "devDependencies": {
