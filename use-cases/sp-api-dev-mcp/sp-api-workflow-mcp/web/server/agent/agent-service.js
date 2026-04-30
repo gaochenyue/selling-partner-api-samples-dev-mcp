@@ -1,10 +1,23 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+import os from 'os';
 import { convertToMermaid } from '../../../src/builder/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '../../..');  // repo root
+const NODE_MODULES = join(__dirname, '../../node_modules/@anthropic-ai');
+
+function findClaudeBinary() {
+  const platform = os.platform();
+  const arch = os.arch();
+  const bin = platform === 'win32' ? 'claude.exe' : 'claude';
+  const pkg = `claude-agent-sdk-${platform}-${arch}`;
+  const candidate = join(NODE_MODULES, pkg, bin);
+  if (existsSync(candidate)) return candidate;
+  return undefined;
+}
 
 /**
  * AgentService manages a single chat session with the Claude Agent SDK.
@@ -63,8 +76,10 @@ export class AgentService {
     const toolNameMap = new Map();
 
     try {
+      const claudeBin = findClaudeBinary();
       const options = {
         model: process.env.CLAUDE_DEFAULT_MODEL || 'us.anthropic.claude-opus-4-7',
+        ...(claudeBin && { pathToClaudeCodeExecutable: claudeBin }),
         cwd: PROJECT_ROOT,
         allowedTools: this.allowedTools,
         permissionMode: 'bypassPermissions',
