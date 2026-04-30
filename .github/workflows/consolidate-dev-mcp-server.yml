@@ -110,12 +110,11 @@ jobs:
             --outfile=../bundled-servers/sp-api-workflow-mcp-server.mjs
 
       - name: Copy dev-assistant data (OpenAPI models, pre-built index and resources)
-        working-directory: use-cases/sp-api-dev-mcp
         run: |
-          mkdir -p bundled-servers/sp-api-dev-assistant-data
-          cp -r sp-api-dev-assistant-mcp-server/dist/data bundled-servers/sp-api-dev-assistant-data/
-          cp -r sp-api-dev-assistant-mcp-server/dist/resources bundled-servers/sp-api-dev-assistant-data/
-          cp -r ../../selling-partner-api-models/models bundled-servers/models
+          mkdir -p use-cases/sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-data
+          cp -r use-cases/sp-api-dev-mcp/sp-api-dev-assistant-mcp-server/dist/data use-cases/sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-data/
+          cp -r use-cases/sp-api-dev-mcp/sp-api-dev-assistant-mcp-server/dist/resources use-cases/sp-api-dev-mcp/bundled-servers/sp-api-dev-assistant-data/
+          cp -r ../selling-partner-api-models/models use-cases/sp-api-dev-mcp/bundled-servers/models
 
       - name: Create sp-api-dev-assistant-mcp-server wrapper
         working-directory: use-cases/sp-api-dev-mcp
