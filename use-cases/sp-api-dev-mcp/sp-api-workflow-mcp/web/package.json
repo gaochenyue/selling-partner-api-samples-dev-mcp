@@ -12,7 +12,7 @@
     "start": "node server/app.js"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.124",
+    "@anthropic-ai/claude-agent-sdk": "0.2.120",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "remark-gfm": "^4.0.1"
