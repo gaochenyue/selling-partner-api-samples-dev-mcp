@@ -5,61 +5,49 @@ import { CodeGenerationTool } from "../../src/tools/code-generation-tools/code-g
 // Mock all six dependency tool modules
 vi.mock("../../src/tools/code-generation-tools/get-workflow-guide.js", () => ({
   GetWorkflowGuide: vi.fn().mockImplementation(() => ({
-    execute: vi
-      .fn()
-      .mockResolvedValue({
-        content: [{ type: "text", text: "workflow-guide-result" }],
-      }),
+    execute: vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "workflow-guide-result" }],
+    }),
   })),
 }));
 
 vi.mock("../../src/utils/clone-repo.js", () => ({
   CloneRepo: vi.fn().mockImplementation(() => ({
-    execute: vi
-      .fn()
-      .mockResolvedValue({
-        content: [{ type: "text", text: "clone-repo-result" }],
-      }),
+    execute: vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "clone-repo-result" }],
+    }),
   })),
 }));
 
 vi.mock("../../src/tools/code-generation-tools/get-basic-usage.js", () => ({
   GetBasicUsage: vi.fn().mockImplementation(() => ({
-    execute: vi
-      .fn()
-      .mockResolvedValue({
-        content: [{ type: "text", text: "basic-usage-result" }],
-      }),
+    execute: vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "basic-usage-result" }],
+    }),
   })),
 }));
 
 vi.mock("../../src/tools/code-generation-tools/get-categories.js", () => ({
   GetCategories: vi.fn().mockImplementation(() => ({
-    execute: vi
-      .fn()
-      .mockResolvedValue({
-        content: [{ type: "text", text: "categories-result" }],
-      }),
+    execute: vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "categories-result" }],
+    }),
   })),
 }));
 
 vi.mock("../../src/tools/code-generation-tools/get-operations.js", () => ({
   GetOperations: vi.fn().mockImplementation(() => ({
-    execute: vi
-      .fn()
-      .mockResolvedValue({
-        content: [{ type: "text", text: "operations-result" }],
-      }),
+    execute: vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "operations-result" }],
+    }),
   })),
 }));
 
 vi.mock("../../src/tools/code-generation-tools/get-models.js", () => ({
   GetModels: vi.fn().mockImplementation(() => ({
-    execute: vi
-      .fn()
-      .mockResolvedValue({
-        content: [{ type: "text", text: "models-result" }],
-      }),
+    execute: vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "models-result" }],
+    }),
   })),
 }));
 

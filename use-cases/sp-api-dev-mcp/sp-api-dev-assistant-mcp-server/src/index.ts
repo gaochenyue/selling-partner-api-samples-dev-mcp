@@ -62,21 +62,33 @@ class SPAPIDevMCPServer {
     this.setupTools();
   }
 
-  private async ensureCatalogLoaded(): Promise<{
-    executeTool: ExecuteApiTool;
-    exploreTool: ExploreCatalogTool;
-  }> {
-    if (this.executeTool && this.exploreTool) {
-      return { executeTool: this.executeTool, exploreTool: this.exploreTool };
-    }
+  private async ensureCatalogLoaded(): Promise<ApiCatalog> {
     if (!this.catalogPromise) {
       this.catalogPromise = this.catalogLoader.loadCatalog();
     }
-    const catalog = await this.catalogPromise;
-    const authenticator = createAuthenticatorFromEnv();
-    this.executeTool = new ExecuteApiTool(catalog, authenticator);
-    this.exploreTool = new ExploreCatalogTool(catalog);
-    return { executeTool: this.executeTool, exploreTool: this.exploreTool };
+    return this.catalogPromise;
+  }
+
+  private async getExploreTool(): Promise<ExploreCatalogTool> {
+    if (!this.exploreTool) {
+      const catalog = await this.ensureCatalogLoaded();
+      this.exploreTool = new ExploreCatalogTool(catalog);
+    }
+    return this.exploreTool;
+  }
+
+  private async getExecuteTool(): Promise<ExecuteApiTool> {
+    if (!this.executeTool) {
+      const catalog = await this.ensureCatalogLoaded();
+      const authenticator = createAuthenticatorFromEnv();
+      if (!authenticator) {
+        throw new Error(
+          "SP-API credentials not configured. Set SP_API_CLIENT_ID, SP_API_CLIENT_SECRET, and SP_API_REFRESH_TOKEN environment variables to use sp_api_execute.",
+        );
+      }
+      this.executeTool = new ExecuteApiTool(catalog, authenticator);
+    }
+    return this.executeTool;
   }
 
   private setupResources(): void {
@@ -239,7 +251,7 @@ OUTPUT CHAINING:
         inputSchema: executeApiSchema,
       },
       async (args: any) => {
-        const { executeTool } = await this.ensureCatalogLoaded();
+        const executeTool = await this.getExecuteTool();
         const result = await executeTool.execute(args);
         return {
           content: [{ type: "text" as const, text: result }],
@@ -260,7 +272,7 @@ OUTPUT CHAINING:
         inputSchema: exploreCatalogSchema,
       },
       async (args: any) => {
-        const { exploreTool } = await this.ensureCatalogLoaded();
+        const exploreTool = await this.getExploreTool();
         const result = await exploreTool.execute(args);
         return {
           content: [{ type: "text" as const, text: result }],

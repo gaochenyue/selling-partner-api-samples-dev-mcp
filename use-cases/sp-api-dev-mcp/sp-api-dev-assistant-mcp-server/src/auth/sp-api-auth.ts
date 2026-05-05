@@ -147,16 +147,14 @@ export class SpApiAuthenticator {
   }
 }
 // Factory to create authenticator from environment variables
-export const createAuthenticatorFromEnv = (): SpApiAuthenticator => {
+export const createAuthenticatorFromEnv = (): SpApiAuthenticator | null => {
   const clientId = process.env.SP_API_CLIENT_ID || "";
   const clientSecret = process.env.SP_API_CLIENT_SECRET;
   const refreshToken = process.env.SP_API_REFRESH_TOKEN;
   const baseUrl = process.env.SP_API_BASE_URL;
 
   if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error(
-      "Missing required SP-API credentials in environment variables",
-    );
+    return null;
   }
 
   return new SpApiAuthenticator({

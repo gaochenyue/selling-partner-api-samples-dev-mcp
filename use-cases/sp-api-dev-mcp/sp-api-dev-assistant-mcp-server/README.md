@@ -16,15 +16,15 @@ A Model Context Protocol (MCP) server that provides tools for interacting with A
 
 **Parameters**:
 
-| Parameter           | Required | Description                                                    |
-| ------------------- | -------- | -------------------------------------------------------------- |
-| `endpoint`          | Yes      | SP-API endpoint ID (e.g., `orders_getOrders`)                  |
-| `parameters`        | Yes      | Complete set of API parameters as key-value pairs              |
-| `method`            | No       | HTTP method override (`GET`, `POST`, `PUT`, `DELETE`)          |
-| `additionalHeaders` | No       | Extra request headers                                          |
-| `rawMode`           | No       | Return raw response without formatting (default: `false`)      |
-| `generateCode`      | No       | Generate a code snippet for the request (default: `false`)     |
-| `region`            | No       | AWS region or selling region (default: `us-east-1`)            |
+| Parameter           | Required | Description                                                |
+| ------------------- | -------- | ---------------------------------------------------------- |
+| `endpoint`          | Yes      | SP-API endpoint ID (e.g., `orders_getOrders`)              |
+| `parameters`        | Yes      | Complete set of API parameters as key-value pairs          |
+| `method`            | No       | HTTP method override (`GET`, `POST`, `PUT`, `DELETE`)      |
+| `additionalHeaders` | No       | Extra request headers                                      |
+| `rawMode`           | No       | Return raw response without formatting (default: `false`)  |
+| `generateCode`      | No       | Generate a code snippet for the request (default: `false`) |
+| `region`            | No       | AWS region or selling region (default: `us-east-1`)        |
 
 ### SP-API Explore Catalog
 
@@ -37,13 +37,13 @@ A Model Context Protocol (MCP) server that provides tools for interacting with A
 
 **Parameters**:
 
-| Parameter        | Required | Description                                                               |
-| ---------------- | -------- | ------------------------------------------------------------------------- |
-| `endpoint`       | No       | Specific endpoint ID to get details for                                   |
-| `category`       | No       | Category name to explore                                                  |
-| `listEndpoints`  | No       | List all available endpoints (default: `false`)                           |
-| `listCategories` | No       | List all available categories (default: `false`)                          |
-| `depth`          | No       | Nested object expansion depth: number or `"full"` (default: `"full"`)     |
+| Parameter        | Required | Description                                                                       |
+| ---------------- | -------- | --------------------------------------------------------------------------------- |
+| `endpoint`       | No       | Specific endpoint ID to get details for                                           |
+| `category`       | No       | Category name to explore                                                          |
+| `listEndpoints`  | No       | List all available endpoints (default: `false`)                                   |
+| `listCategories` | No       | List all available categories (default: `false`)                                  |
+| `depth`          | No       | Nested object expansion depth: number or `"full"` (default: `"full"`)             |
 | `ref`            | No       | Extract specific nested object using dot notation (e.g., `Order.ShippingAddress`) |
 
 ### SP-API Reference Search
@@ -160,16 +160,16 @@ Supports: Python, JavaScript, Java, C#, PHP.
 
 ### Environment Variables
 
-| Variable                | Required For                              | Description                                          |
-| ----------------------- | ----------------------------------------- | ---------------------------------------------------- |
-| `SP_API_CLIENT_ID`      | `sp_api_execute`                          | SP-API OAuth client ID                               |
-| `SP_API_CLIENT_SECRET`  | `sp_api_execute`                          | SP-API OAuth client secret                           |
-| `SP_API_REFRESH_TOKEN`  | `sp_api_execute`                          | SP-API refresh token                                 |
-| `SP_API_BASE_URL`       | Optional                                  | Override SP-API base URL (default: NA endpoint)      |
-| `SP_API_OAUTH_URL`      | Optional                                  | Override OAuth token URL                             |
-| `CATALOG_PATH`          | `sp_api_execute`, `sp_api_explore_catalog`| Path to Swagger/OpenAPI JSON files (default: `./swagger`) |
-| `MAX_RESPONSE_TOKENS`   | Optional                                  | Max tokens before catalog responses truncate (default: `25000`) |
-| `LOG_LEVEL`             | Optional                                  | Logging level: `error`, `warn`, `info`, `debug` (default: `info`) |
+| Variable               | Required For                               | Description                                                       |
+| ---------------------- | ------------------------------------------ | ----------------------------------------------------------------- |
+| `SP_API_CLIENT_ID`     | `sp_api_execute`                           | SP-API OAuth client ID                                            |
+| `SP_API_CLIENT_SECRET` | `sp_api_execute`                           | SP-API OAuth client secret                                        |
+| `SP_API_REFRESH_TOKEN` | `sp_api_execute`                           | SP-API refresh token                                              |
+| `SP_API_BASE_URL`      | Optional                                   | Override SP-API base URL (default: NA endpoint)                   |
+| `SP_API_OAUTH_URL`     | Optional                                   | Override OAuth token URL                                          |
+| `CATALOG_PATH`         | `sp_api_execute`, `sp_api_explore_catalog` | Path to Swagger/OpenAPI JSON files (default: `./swagger`)         |
+| `MAX_RESPONSE_TOKENS`  | Optional                                   | Max tokens before catalog responses truncate (default: `25000`)   |
+| `LOG_LEVEL`            | Optional                                   | Logging level: `error`, `warn`, `info`, `debug` (default: `info`) |
 
 The `sp_api_reference`, `sp_api_optimize`, `sp_api_generate_code_sample`, and `sp_api_migration_assistant` tools work locally without any credentials or environment variables. SP-API credentials are only needed when using `sp_api_execute` to make live API calls.
 
